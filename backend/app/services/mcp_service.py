@@ -166,15 +166,16 @@ class MCPService:
             action = params.get("action", "quote")
             api_key = self.api_keys.get("market_api_key", "demo")
 
-            url = f"https://www.alphavantage.co/query"
+            url = "https://www.alphavantage.co/query"
 
             if action == "quote":
-                response_data = httpx.get(url, params={
-                    "function": "GLOBAL_QUOTE",
-                    "symbol": symbol,
-                    "apikey": api_key,
-                }).json()
-                return {"success": True, "data": response_data}
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url, params={
+                        "function": "GLOBAL_QUOTE",
+                        "symbol": symbol,
+                        "apikey": api_key,
+                    })
+                return {"success": True, "data": response.json()}
 
             return {"success": False, "error": f"Unknown action: {action}"}
 
@@ -197,11 +198,12 @@ class MCPService:
 
             if action == "price":
                 url = "https://api.coingecko.com/api/v3/simple/price"
-                response = httpx.get(url, params={
-                    "ids": coin_id,
-                    "vs_currencies": "usd",
-                    "include_24hr_change": "true",
-                })
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url, params={
+                        "ids": coin_id,
+                        "vs_currencies": "usd",
+                        "include_24hr_change": "true",
+                    })
                 return {"success": True, "data": response.json()}
 
             return {"success": False, "error": f"Unknown action: {action}"}

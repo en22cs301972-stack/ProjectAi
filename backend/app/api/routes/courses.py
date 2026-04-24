@@ -170,7 +170,6 @@ async def update_progress(
             issue_certificate,
             user_id=str(current_user.id),
             course_id=str(course_id),
-            db=db,
         )
 
     await db.flush()
@@ -181,45 +180,50 @@ async def update_progress(
     }
 
 
-async def issue_certificate(user_id: str, course_id: str, db: AsyncSession):
-    """Issue a certificate for course completion."""
-    from sqlalchemy import select as sa_select
+async def issue_certificate(user_id: str, course_id: str):
+    """Issue a certificate for course completion using its own DB session."""
+    from app.database import AsyncSessionLocal
 
-    user_result = await db.execute(select(User).where(User.id == user_id))
-    user = user_result.scalar_one_or_none()
-    course_result = await db.execute(select(Course).where(Course.id == course_id))
-    course = course_result.scalar_one_or_none()
+    async with AsyncSessionLocal() as db:
+        try:
+            user_result = await db.execute(select(User).where(User.id == user_id))
+            user = user_result.scalar_one_or_none()
+            course_result = await db.execute(select(Course).where(Course.id == course_id))
+            course = course_result.scalar_one_or_none()
 
-    if not user or not course:
-        return
+            if not user or not course:
+                return
 
-    # Check if certificate already exists
-    cert_result = await db.execute(
-        select(Certificate).where(
-            Certificate.user_id == user_id,
-            Certificate.course_id == course_id,
-        )
-    )
-    if cert_result.scalar_one_or_none():
-        return
+            # Check if certificate already exists
+            cert_result = await db.execute(
+                select(Certificate).where(
+                    Certificate.user_id == user_id,
+                    Certificate.course_id == course_id,
+                )
+            )
+            if cert_result.scalar_one_or_none():
+                return
 
-    certificate_number = f"CERT-{secrets.token_hex(8).upper()}"
+            certificate_number = f"CERT-{secrets.token_hex(8).upper()}"
 
-    pdf_path = generate_certificate(
-        user_name=user.full_name or user.username,
-        course_title=course.title,
-        completion_date=datetime.utcnow(),
-        certificate_number=certificate_number,
-    )
+            pdf_path = generate_certificate(
+                user_name=user.full_name or user.username,
+                course_title=course.title,
+                completion_date=datetime.utcnow(),
+                certificate_number=certificate_number,
+            )
 
-    cert = Certificate(
-        user_id=user_id,
-        course_id=course_id,
-        certificate_number=certificate_number,
-        pdf_path=pdf_path,
-    )
-    db.add(cert)
-    await db.commit()
+            cert = Certificate(
+                user_id=user_id,
+                course_id=course_id,
+                certificate_number=certificate_number,
+                pdf_path=pdf_path,
+            )
+            db.add(cert)
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
 
 
 @router.get("/certificates/my", response_model=List[CertificateResponse])

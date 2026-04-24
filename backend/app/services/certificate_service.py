@@ -8,8 +8,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch, cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from reportlab.platypus.flowables import HRFlowable
+from reportlab.lib.enums import TA_CENTER
 import structlog
 
 logger = structlog.get_logger()

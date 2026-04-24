@@ -171,6 +171,7 @@ export default function LearningPage() {
           <button
             onClick={handleRunCode}
             disabled={loading}
+            aria-label="Run code"
             className="btn-primary flex items-center gap-2 text-sm py-2"
           >
             {loading ? (

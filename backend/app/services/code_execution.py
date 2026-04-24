@@ -171,11 +171,15 @@ async def run_process(
 
 
 def extract_java_class_name(code: str) -> str:
-    """Extract the main public class name from Java code."""
+    """Extract and sanitize the main public class name from Java code."""
     import re
     match = re.search(r"public\s+class\s+(\w+)", code)
     if match:
-        return match.group(1)
+        # Sanitize: only allow alphanumeric and underscore characters
+        class_name = re.sub(r"[^\w]", "", match.group(1))
+        # Ensure it doesn't start with a digit and isn't empty
+        if class_name and not class_name[0].isdigit():
+            return class_name
     return "Main"
 
 
@@ -194,7 +198,10 @@ async def execute_sql(code: str) -> dict:
 
         for stmt in statements:
             try:
-                cursor.execute(stmt)
+                # Intentional: this is a sandboxed SQL execution environment.
+                # User-provided SQL runs in an isolated in-memory SQLite instance
+                # that is discarded after each request, preventing data leakage.
+                cursor.execute(stmt)  # noqa: S608
                 if cursor.description:
                     columns = [d[0] for d in cursor.description]
                     rows = cursor.fetchall()

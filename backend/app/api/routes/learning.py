@@ -18,6 +18,7 @@ from app.services.ai_service import (
     explain_code_error, generate_code_feedback, chat_with_tutor, suggest_code_fix
 )
 from app.core.security import get_current_user
+from app.config import settings
 
 router = APIRouter()
 
@@ -105,10 +106,13 @@ async def get_code_fix(
     current_user: User = Depends(get_current_user),
 ):
     """Get specific code fix suggestions."""
+    # Truncate user-provided strings to prevent excessive input
+    safe_code = code[:settings.MAX_CODE_LENGTH]
+    safe_issue = issue[:500]
     return await suggest_code_fix(
-        code=code,
+        code=safe_code,
         language=language,
-        issue_description=issue,
+        issue_description=safe_issue,
         response_language=current_user.response_language,
     )
 
