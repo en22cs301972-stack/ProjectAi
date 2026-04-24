@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Node / Frontend
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# Certificates (generated files)
+backend/certificates/
+certificates/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker volumes (local)
+postgres_data/
+redis_data/
